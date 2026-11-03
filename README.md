@@ -63,6 +63,11 @@ Les migrations versionnées sont dans `supabase/migrations/` :
 
 ### Appliquer les migrations sur le projet Supabase
 
+**Méthode simple (sans terminal)** : concaténer les migrations non encore appliquées dans un seul fichier, le coller dans Supabase > SQL Editor > New query, puis cliquer sur Run, **une seule fois**. Les migrations appliquées ainsi sont consignées dans `PRODUCT_SPEC.md` §18.
+Si l'on passe plus tard à la CLI, marquer d'abord ces migrations comme appliquées avec `npx supabase migration repair --status applied <version>`.
+
+**Méthode CLI** :
+
 ```bash
 npx supabase login                                   # ouvre le navigateur
 npx supabase link --project-ref ivsaiyualnpjvhjgvkcs # demande le mot de passe de la base
