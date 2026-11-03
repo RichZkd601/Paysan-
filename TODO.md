@@ -33,6 +33,7 @@ Une case n'est cochée que si elle a été **testée**.
 - [x] Redirections sûres (pas de redirection ouverte)
 - [x] Zones privées : 307 vers `/connexion` sans session ; `requireAdmin` côté serveur
 - [x] Job CI `database` (Postgres + PostGIS)
+- [x] CI GitHub verte sur `main` (jobs `check` et `database`) ; échec du Lot 0 (types de routes non générés) corrigé
 - [ ] **À faire par Toméo** : `supabase db push` sur le projet + réglages Auth (URL, modèle d'e-mail) — voir README
 - [ ] **À faire par Toméo** : créer le premier compte admin (SQL dans le README)
 - [ ] Test de bout en bout du lien magique sur le vrai projet (après les deux points ci-dessus)

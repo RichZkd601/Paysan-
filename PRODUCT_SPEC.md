@@ -366,6 +366,7 @@ Le MVP est réussi lorsque 10 à 20 producteurs pilotes peuvent gérer leurs fic
 - `npm run test:db` ✔ — 27 tests d'accès (RLS active partout, absence de colonnes de mise en avant, visiteur / producteur A vs B / favoris / admin, recherche PostGIS par rayon triée par distance, 3 points de vente avec horaires différents).
 - Test de mutation : en affaiblissant volontairement deux politiques, 4 tests échouent, ce qui montre qu'ils détectent les fuites.
 - `npm run check` ✔ (lint, types, 14 tests unitaires, secrets) · `npm run build` ✔.
+- **CI GitHub Actions ✔** sur `main` (jobs `check` et `database`). Le premier run GitHub du Lot 0 avait échoué (`LayoutProps` introuvable : les types de routes Next 16 n'étaient pas générés avant `tsc`). C'est corrigé au Lot 1 : `typecheck` lance `next typegen`.
 - Serveur lancé : `/compte` et `/admin` → 307 vers `/connexion?next=…` sans session ; lien de confirmation invalide → retour à la connexion avec message ; tentative de redirection externe neutralisée ; déconnexion en GET refusée (405).
 
 **Limites connues**
