@@ -2,10 +2,15 @@
 
 *Cahier des charges produit, technique et MVP — source de vérité pour Claude Code*
 
-Version 1.2 — 3 novembre 2026
+Version 1.3 — 3 novembre 2026
 Nom de travail : **PAYSAN** (provisoire, ni domaine ni identité visuelle arrêtés)
 
-> **Changements depuis la v1.1**
+> **Changements depuis la v1.2**
+> - Lot 1 (DB & auth) terminé côté code et testé ; application sur le projet Supabase en attente (§12, §18).
+> - Décisions actées (§15.1) : connexion par lien magique, validation admin obligatoire avant publication, 4 types de points de vente, dépôt GitHub, projet Supabase.
+> - §8 : champs complémentaires ajoutés lors de l'écriture des migrations (détail sous le tableau).
+>
+> **Changements v1.1 → v1.2**
 > - Lot 0 (Setup) terminé et vérifié : statut ajouté au §12, détail dans le journal d'avancement (§18).
 > - Choix techniques de socle actés au §15.1 (versions Next.js / Node, outils de test et de qualité).
 >
@@ -98,7 +103,7 @@ Créer une plateforme nationale de découverte des producteurs et points de vent
 
 ### 4.2 Espace producteur
 
-- Inscription et connexion par email (mot de passe ou lien magique, choix à confirmer à l'implémentation).
+- Inscription et connexion par email via **lien magique** (décidé le 03/11/2026, pas de mot de passe).
 - Création de fiche avec nom commercial, description courte, photos, catégories de produits, téléphone/site/réseaux sociaux facultatifs.
 - Ajout, modification, désactivation et suppression logique de plusieurs points de vente.
 - Pour chaque point : nom affiché, type, adresse, géocodage, latitude/longitude, précision/état de validation, horaires par jour, notes pratiques.
@@ -194,6 +199,8 @@ Règles d'implémentation :
 | producer_invites | id, producer_id, email, token_hash, expires_at, claimed_at | Token sécurisé, stocker le hash, expiration et usage unique. |
 | slug_aliases | id, entity_type, entity_id, old_slug, created_at | Anciens slugs redirigés vers l'URL courante (cf. §6). |
 
+**Champs complémentaires introduits au Lot 1** (migrations `supabase/migrations/`) : `profiles.updated_at` ; `sales_points.address_line`, `postal_code`, `city`, `insee_code`, `country_code`, `location_confirmed_at`, `hours_variable` (« horaires variables ») ; `reports.resolved_at` et liste fermée de motifs (`wrong_hours`, `wrong_address`, `closed`, `wrong_products`, `duplicate`, `other`) ; `producer_invites.claimed_by`, `created_by`, `created_at` ; statut producteur `archived` en plus des quatre statuts du §4.2 ; statuts de point de vente `active` / `inactive` / `archived`.
+
 Les champs exacts et les types doivent être finalisés dans les migrations SQL. Pour la recherche géographique, stocker un point PostGIS (SRID 4326) et créer un index spatial. Ne pas calculer les distances en filtrant des milliers de lignes côté navigateur.
 
 ## 9. Sécurité, confidentialité et fiabilité
@@ -237,8 +244,8 @@ Les champs exacts et les types doivent être finalisés dans les migrations SQL.
 | Lot | Contenu | Critères de sortie | Statut |
 | --- | --- | --- | --- |
 | 0 — Setup | Repo, Next.js, TypeScript, lint, env, CI basique, configuration centralisée du nom et de l'URL de base | App démarre localement ; README ; secrets absents du repo. | ✅ Terminé et vérifié — 03/11/2026 |
-| 1 — DB & auth | Migrations, Supabase, profils, rôles, RLS | Tests d'accès : visiteur/producteur/admin ; aucune fuite de données. | ⏳ Prochain lot |
-| 2 — Producteur | CRUD fiche, photos, catégories, points de vente, horaires, module de géocodage Géoplateforme + correction manuelle du marqueur | Producteur peut gérer plusieurs lieux, corriger leur position et prévisualiser ses pages. | À faire |
+| 1 — DB & auth | Migrations, Supabase, profils, rôles, RLS | Tests d'accès : visiteur/producteur/admin ; aucune fuite de données. | ✅ Code terminé et testé — 03/11/2026 · application sur le projet Supabase en attente |
+| 2 — Producteur | CRUD fiche, photos, catégories, points de vente, horaires, module de géocodage Géoplateforme + correction manuelle du marqueur | Producteur peut gérer plusieurs lieux, corriger leur position et prévisualiser ses pages. | ⏳ Prochain lot |
 | 3 — Pages publiques | URLs stables, fiches producteur et point de vente | Pages accessibles sans compte, métadonnées partageables. | À faire |
 | 4 — Carte & recherche | Carte, géoloc, recherche ville via géocodage, filtres, PostGIS | Résultats proches et filtres corrects ; fallback sans GPS ; ordre conforme au §10. | À faire |
 | 5 — Favoris & signalements | Connexion consommateur, favoris, signalement | Favoris privés ; signalements visibles seulement par admin. | À faire |
@@ -280,6 +287,11 @@ Les champs exacts et les types doivent être finalisés dans les migrations SQL.
 | Socle applicatif | Next.js 16 (App Router, dossier `src/`), React 19, TypeScript strict (+ `noUncheckedIndexedAccess`), Tailwind CSS 4 | 03/11/2026 |
 | Environnement d'exécution | Node.js ≥ 22 (`.nvmrc`), npm | 03/11/2026 |
 | Qualité & tests | ESLint (config Next), Prettier, Vitest ; validation des variables d'environnement par zod ; CI GitHub Actions | 03/11/2026 |
+| Connexion | Lien magique par e-mail (Supabase Auth), sans mot de passe ; lien au format `token_hash` (utilisable sur un autre appareil) | 03/11/2026 |
+| Validation avant publication | Oui : un producteur soumet (`pending_review`), seul un admin publie. Appliqué en base (non contournable par l'API) | 03/11/2026 |
+| Types de points de vente | `farm` (vente à la ferme), `market` (marché), `shop` (magasin / dépôt), `vending_machine` (distributeur) — liste du §4.1, extensible par migration | 03/11/2026 |
+| Dépôt de code | GitHub `RichZkd601/Paysan-`, branche `main` | 03/11/2026 |
+| Projet Supabase | `ivsaiyualnpjvhjgvkcs` ; clé publishable dans `.env.example` (publique par conception) | 03/11/2026 |
 
 ### 15.2 Décisions à ne pas inventer — à confirmer avant production
 
@@ -287,11 +299,11 @@ Les champs exacts et les types doivent être finalisés dans les migrations SQL.
 - Pays couverts au lancement : France métropolitaine uniquement ou aussi DROM-COM.
 - Quelles catégories exactes et quels types de points de vente sont proposés.
 - Quel fournisseur de tuiles cartographiques, après vérification des licences, quotas et coûts.
-- La validation admin est-elle obligatoire avant publication ? Recommandation : oui au lancement.
 - Les producteurs peuvent-ils afficher un numéro de téléphone public ? Champ facultatif, choix explicite.
 - Les horaires exceptionnels sont-ils inclus dès MVP ou seulement horaires hebdomadaires + fermeture temporaire ? Recommandation : prévoir le modèle mais livrer le minimum.
-- Mode de connexion : mot de passe ou lien magique (à trancher au Lot 1).
-- Hébergement du dépôt (compte/organisation GitHub) et région du projet Supabase (recommandation : UE, pour le RGPD).
+- Région du projet Supabase : à vérifier (recommandation : UE, pour le RGPD).
+- Un producteur peut-il modifier une fiche déjà publiée sans nouvelle validation ? Comportement actuel : oui (seuls les changements de statut sont contrôlés).
+- Fournisseur SMTP pour les e-mails de connexion avant l'ouverture publique.
 
 ## 16. Prompt de reprise pour chaque session Claude Code
 
@@ -334,3 +346,29 @@ Le MVP est réussi lorsque 10 à 20 producteurs pilotes peuvent gérer leurs fic
 **Limites connues**
 - Dépôt git local, pas encore poussé sur GitHub : la CI n'a tourné qu'en local (mêmes commandes).
 - Avertissements `npm audit` (sévérité modérée) hérités des dépendances de l'outillage ; à réévaluer au Lot 7.
+
+### Lot 1 — DB & auth — ✅ code terminé et testé le 03/11/2026 (application sur Supabase en attente)
+
+**Livré**
+- 3 migrations versionnées (`supabase/migrations/`) : PostGIS (schéma `extensions`), types énumérés, 10 tables du §8, index spatial GiST, contraintes de validation (slugs, codes postaux, URL, longueurs, créneaux horaires cohérents), référentiel des 11 catégories.
+- Profil créé automatiquement à l'inscription (rôle `consumer`) ; passage automatique en `producer` à la création d'une fiche ; changement de rôle réservé à l'admin (`set_user_role`). Un utilisateur ne peut modifier que son `display_name`.
+- RLS sur les 10 tables + privilèges de table explicites pour `anon` / `authenticated` :
+  - visiteur : lecture des seules fiches publiées et des points de vente actifs de ces fiches (et de leurs horaires, catégories, anciens slugs) ; envoi de signalements uniquement ;
+  - producteur : lecture et écriture de ses seules fiches, lieux et horaires ; aucune lecture des signalements, invitations ni profils d'autrui ;
+  - admin : accès complet, sans aucun outil de mise en avant (§2).
+- Garde-fou en base sur les fiches : un non-admin ne peut ni publier, ni suspendre, ni archiver, ni s'auto-vérifier, ni changer le propriétaire ; transitions autorisées : brouillon ↔ en attente, publiée → brouillon.
+- Alias automatique de l'ancien slug à chaque renommage (§6), invisible tant que la fiche n'est pas publique.
+- Application : clients Supabase (navigateur / serveur / proxy), pages `/connexion` (lien magique), `/auth/confirmer`, `/auth/deconnexion` (POST), `/compte`, `/admin` (squelette protégé) ; redirections internes uniquement ; zones privées protégées par une redirection 307.
+- Supabase CLI (`supabase/config.toml`) et modèle d'e-mail du lien magique en français (`supabase/templates/magic_link.html`).
+- CI : nouveau job `database` (PostgreSQL + PostGIS) qui applique les migrations et exécute les tests d'accès.
+
+**Vérifications effectuées**
+- `npm run test:db` ✔ — 27 tests d'accès (RLS active partout, absence de colonnes de mise en avant, visiteur / producteur A vs B / favoris / admin, recherche PostGIS par rayon triée par distance, 3 points de vente avec horaires différents).
+- Test de mutation : en affaiblissant volontairement deux politiques, 4 tests échouent, ce qui montre qu'ils détectent les fuites.
+- `npm run check` ✔ (lint, types, 14 tests unitaires, secrets) · `npm run build` ✔.
+- Serveur lancé : `/compte` et `/admin` → 307 vers `/connexion?next=…` sans session ; lien de confirmation invalide → retour à la connexion avec message ; tentative de redirection externe neutralisée ; déconnexion en GET refusée (405).
+
+**Limites connues**
+- Le projet Supabase n'est pas joignable depuis l'environnement de développement : les migrations restent à appliquer (`npx supabase db push`) et les réglages Auth à faire dans le tableau de bord (voir README).
+- L'envoi réel des liens magiques n'a pas été testé de bout en bout.
+- Pas de limitation de débit applicative sur les signalements (prévue au Lot 5).

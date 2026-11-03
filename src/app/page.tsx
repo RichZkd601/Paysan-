@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { siteConfig } from "@/config/site";
 
 /**
@@ -12,6 +13,11 @@ export default function HomePage() {
       <p className="text-lg">{siteConfig.tagline}</p>
       <p className="text-sm opacity-70">
         Site en construction. La carte des producteurs et des points de vente arrive bientôt.
+      </p>
+      <p>
+        <Link href="/connexion" className="underline">
+          Se connecter / créer un compte
+        </Link>
       </p>
     </main>
   );
